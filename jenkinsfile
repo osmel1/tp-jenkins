@@ -8,31 +8,35 @@ pipeline {
   stages {
     stage('Cloning Git') {
       steps {
-       git branch: 'main', url: 'https://github.com/osmel1/tp-jenkins'
+        git branch: 'main', url: 'https://github.com/osmel1/tp-jenkins'
       }
     }
     stage('Building image') {
-      steps{
+      steps {
         script {
-          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+          dockerImage = docker.build("${registry}:$BUILD_NUMBER")
         }
       }
     }
-stage('Test image') {
-        steps{
+    stage('Test image') {
+      steps {
         script {
-        
-            echo "Tests passed"
+          echo "Tests passed"
         }
       }
     }
-    stage('Deploy Image') {
-      steps{
+    stage('Publish Image') {
+      steps {
         script {
-          docker.withRegistry( '', registryCredential ) {
+          docker.withRegistry('', registryCredential) {
             dockerImage.push()
           }
         }
+      }
+    }
+    stage('Deploy image') {
+      steps {
+        bat "docker run -d ${registry}:$BUILD_NUMBER"
       }
     }
   }
